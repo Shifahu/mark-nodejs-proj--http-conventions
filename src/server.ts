@@ -5,6 +5,8 @@ import {
   getAllSignatures,
   insertSignature,
   removeSignatureByEpoch,
+  updateSignature,
+  updateSignatureByEpoch,
 } from "./signature/model";
 
 const app = express();
@@ -76,9 +78,31 @@ app.get("/signatures/:epoch", (req, res) => {
   }
 });
 
+app.put("/signatures/:epoch",(req, res) => {
+  const epochId = parseInt(req.params.epoch); // params are string type
+  const updatePerson = req.body;
+  const update = updateSignatureByEpoch(epochId, updatePerson) ;
+  if (update) {
+    res.status(200).json({
+      status: "success",
+      data: {
+        signature: update,
+      },
+    });
+  } else {
+    res.status(404).json({
+      status: "fail",
+      data: {
+        epochId: "Could not find name",
+      },
+    });
+  }
+});
+
 app.delete("/signatures/:epoch", (req, res) => {
   const epochId = parseInt(req.params.epoch); // params are string type
   const didRemove = removeSignatureByEpoch(epochId);
+  const signature = findSignatureByEpoch(epochId);
   if (didRemove) {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE#responses
     // we've gone for '200 response with JSON body' to respond to a DELETE
@@ -86,6 +110,9 @@ app.delete("/signatures/:epoch", (req, res) => {
     //  res.status(204).send() to send with status 204 and no JSON body
     res.status(200).json({
       status: "success",
+      data: {
+        signature,
+      },
     });
   } else {
     res.status(404).json({
